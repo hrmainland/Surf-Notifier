@@ -43,6 +43,7 @@ class SurfSpot:
 
 # for stormglass request
 
+
 def unix_timestamp():
     melbourne_tz = pytz.timezone("Australia/Melbourne")
     now = datetime.today().astimezone(melbourne_tz)
@@ -160,6 +161,8 @@ if __name__ == "__main__":
     thirteenth = SurfSpot("13th Beach", -38.2889164, 144.4708001, 10)
     all_spots = [thirteenth, sandy]
 
+    msg = ""
+
     for surf_spot in all_spots:
         swell_data = get_swell_data(surf_spot)
 
@@ -180,23 +183,25 @@ if __name__ == "__main__":
 
         pushover_data = get_good_groups(df)
 
-        for device in DEVICES:
-            msg = ""
+        msg += f"{surf_spot.name}:\n"
 
-            for date, swell_height in pushover_data.items():
-                msg += f"{swell_height}m on {date}\n"
+        for date, swell_height in pushover_data.items():
+            msg += f"{swell_height}m on {date}\n"
+        msg += "\n"
 
-            response = requests.post(
-                PUSHOVER_URL,
-                params={
-                    "token": PUSHOVER_TOKEN,
-                    "user": PUSHOVER_USER,
-                    "title": f"Clean conditions at {surf_spot.name}",
-                    "message": msg,
-                    "device": device,
-                },
-            )
-            if response.status_code != 200:
-                print(response.json())
-                break
-            print(f"Sent notification for {surf_spot.name} to {device}")
+    for device in DEVICES:
+
+        response = requests.post(
+            PUSHOVER_URL,
+            params={
+                "token": PUSHOVER_TOKEN,
+                "user": PUSHOVER_USER,
+                "title": f"Clean conditions at {surf_spot.name}",
+                "message": msg,
+                "device": device,
+            },
+        )
+        if response.status_code != 200:
+            print(response.json())
+            break
+        print(f"Sent notification for {surf_spot.name} to {device}\nmsg:\n{msg}")
