@@ -132,6 +132,24 @@ def final_eval(df, spot):
     return [min(a, b) for a, b in zip(wind_eval(df, spot), swell_height_eval(df))]
 
 
+def get_df(surf_spot):
+    df = pd.DataFrame(swell_data["hours"])
+    melbourne_tz = pytz.timezone("Australia/Melbourne")
+
+    df["time"] = df["time"].apply(
+        lambda x: datetime.fromisoformat(x)
+        .replace(tzinfo=timezone.utc)
+        .astimezone(melbourne_tz)
+    )
+
+    df.set_index("time", inplace=True)
+
+    df["windEval"] = wind_eval(df, surf_spot)
+    df["swellEval"] = swell_height_eval(df)
+    df["finalEval"] = final_eval(df, surf_spot)
+    return df
+
+
 def get_good_groups(df):
     result = {}
     for day in range(1, 32):
@@ -164,30 +182,22 @@ if __name__ == "__main__":
     msg = ""
 
     for surf_spot in all_spots:
+
         swell_data = get_swell_data(surf_spot)
-
-        df = pd.DataFrame(swell_data["hours"])
-        melbourne_tz = pytz.timezone("Australia/Melbourne")
-
-        df["time"] = df["time"].apply(
-            lambda x: datetime.fromisoformat(x)
-            .replace(tzinfo=timezone.utc)
-            .astimezone(melbourne_tz)
-        )
-
-        df.set_index("time", inplace=True)
-
-        df["windEval"] = wind_eval(df, surf_spot)
-        df["swellEval"] = swell_height_eval(df)
-        df["finalEval"] = final_eval(df, surf_spot)
-
+        df = get_df(surf_spot)
         pushover_data = get_good_groups(df)
 
         msg += f"{surf_spot.name}:\n"
 
         for date, swell_height in pushover_data.items():
             msg += f"{swell_height}m on {date}\n"
+
+        if len(pushover_data) == 0:
+            msg += "No clean surf conditions :(\n"
         msg += "\n"
+
+    # remove last two newlines
+    msg = msg[:-2]
 
     for device in DEVICES:
 
@@ -196,7 +206,7 @@ if __name__ == "__main__":
             params={
                 "token": PUSHOVER_TOKEN,
                 "user": PUSHOVER_USER,
-                "title": f"Clean conditions at {surf_spot.name}",
+                "title": f"Clean Surf Conditions",
                 "message": msg,
                 "device": device,
             },
