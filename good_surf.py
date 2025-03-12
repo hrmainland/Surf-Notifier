@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 import pandas as pd
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import math
 
 # # only required for dev
@@ -150,6 +150,11 @@ def get_df(surf_spot):
     return df
 
 
+def is_this_week(date: datetime):
+    weekday_diff = date.weekday() - datetime.today().weekday()
+    return (datetime.today() + timedelta(weekday_diff)).day == date.day
+
+
 def get_good_groups(df):
     result = {}
     for day in range(1, 32):
@@ -163,12 +168,12 @@ def get_good_groups(df):
         eval_df["swellHeight"] = eval_df["swellHeight"].apply(
             lambda x: round(np.mean(list(x.values())), 2)
         )
-        day_string = readable_date(eval_df.index[0])
+        date = eval_df.index[0]
         for i in range(len(eval_df) - MIN_GOOD_HOURS + 1):
             window = eval_df[i : i + MIN_GOOD_HOURS]
             good_hours = window["finalEval"].sum()
             if good_hours == MIN_GOOD_HOURS:
-                result[day_string] = round(np.mean(window["swellHeight"]), 1)
+                result[date] = round(np.mean(window["swellHeight"]), 1)
                 break
     return result
 
@@ -190,7 +195,7 @@ if __name__ == "__main__":
         msg += f"{surf_spot.name}:\n"
 
         for date, swell_height in pushover_data.items():
-            msg += f"{swell_height}m on {date}\n"
+            msg += f"{swell_height}m {"this" if is_this_week(date) else "next"} {date.strftime("%A")}\n"
 
         if len(pushover_data) == 0:
             msg += "No clean surf conditions :(\n"
