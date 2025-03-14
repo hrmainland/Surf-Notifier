@@ -195,7 +195,8 @@ if __name__ == "__main__":
         msg += f"{surf_spot.name}:\n"
 
         for date, swell_height in pushover_data.items():
-            msg += f"{swell_height}m {"this" if is_this_week(date) else "next"} {date.strftime("%A")}\n"
+            week_str = "this" if is_this_week(date) else "next"
+            msg += f"{swell_height}m {week_str} {date.strftime('%A')}\n"
 
         if len(pushover_data) == 0:
             msg += "No clean surf conditions :(\n"
