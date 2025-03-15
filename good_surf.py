@@ -22,7 +22,7 @@ MIN_GOOD_HOURS = 3
 START_HOUR = 6
 END_HOUR = 19
 
-DEVICES = ["macchrome", "iphonexs"]
+DEVICES = ["iphonexs", "pixel6a"]
 
 STORMGLASS_KEY = os.getenv("STORMGLASS_KEY")
 PUSHOVER_TOKEN = os.getenv("PUSHOVER_TOKEN")
