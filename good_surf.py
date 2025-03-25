@@ -7,11 +7,8 @@ import os
 import numpy as np
 import pandas as pd
 from datetime import datetime, timezone, timedelta
+import dotenv
 import math
-
-# # only required for dev
-# import dotenv
-# dotenv.load_dotenv()
 
 WIND_RANGE = 100
 SWELL_RANGE = 100
@@ -23,6 +20,8 @@ START_HOUR = 6
 END_HOUR = 19
 
 DEVICES = ["iphonexs", "pixel6a"]
+
+dotenv.load_dotenv()
 
 STORMGLASS_KEY = os.getenv("STORMGLASS_KEY")
 PUSHOVER_TOKEN = os.getenv("PUSHOVER_TOKEN")
